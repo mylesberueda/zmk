@@ -1,0 +1,45 @@
+# docker run --rm -v C:/Users/Myles/zmk:/zmk -w /zmk/app zmkfirmware/zmk-build-arm:stable west build -d build/left -b nice_nano -- -DSHIELD='lily58_left nice_view_adapter nice_view'
+[tasks."build:left"]
+description = "Build firmware for left half"
+shell = "nu -c"
+usage = '''
+flag "--kb <kb>" help="Keyboard shield name" default="lily58"
+flag "--display <display>" help="Display shields" default="nice_view_adapter nice_view"
+'''
+run = 'let shield = $"($env.usage_kb)_left ($env.usage_display)"; docker run --rm -v $"(pwd):/zmk" -w /zmk/app zmkfirmware/zmk-build-arm:stable west build -p -d build/left -b nice_nano -- $"-DSHIELD=($shield)"'
+
+# docker run --rm -v C:/Users/Myles/zmk:/zmk -w /zmk/app zmkfirmware/zmk-build-arm:stable west build -d build/right -b nice_nano -- -DSHIELD='lily58_right nice_view_adapter nice_view'
+[tasks."build:right"]
+description = "Build firmware for right half"
+shell = "nu -c"
+usage = '''
+flag "--kb <kb>" help="Keyboard shield name" default="lily58"
+flag "--display <display>" help="Display shields" default="nice_view_adapter nice_view"
+'''
+run = 'let shield = $"($env.usage_kb)_right ($env.usage_display)"; docker run --rm -v $"(pwd):/zmk" -w /zmk/app zmkfirmware/zmk-build-arm:stable west build -p -d build/right -b nice_nano -- $"-DSHIELD=($shield)"'
+
+[tasks."build:all"]
+description = "Build firmware for both halves"
+depends = ["build:left", "build:right"]
+
+[tasks.clean]
+description = "Remove build directories"
+run = "rm -rf app/build"
+
+[tasks."clean:left"]
+description = "Remove left build directory"
+run = "rm -rf app/build/left"
+
+[tasks."clean:right"]
+description = "Remove right build directory"
+run = "rm -rf app/build/right"
+
+[tasks.flash]
+description = "Show location of built firmware files"
+run = '''
+echo "Firmware files:"
+echo "  Left:  app/build/left/zephyr/zmk.uf2"
+echo "  Right: app/build/right/zephyr/zmk.uf2"
+echo ""
+echo "To flash: double-tap reset on nice!nano, then copy the .uf2 file to the USB drive"
+'''
